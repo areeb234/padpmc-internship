@@ -65,8 +65,7 @@ db.exec(`
 
 // ── Middleware ─────────────────────────────────────────────────────
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
-
+app.use(express.static(path.join(__dirname, '..', 'public')));
 // Simple API key auth for HR dashboard endpoints
 const HR_API_KEY = process.env.HR_API_KEY || 'change-this-key-before-deploying';
 function requireAuth(req, res, next) {
@@ -175,7 +174,7 @@ app.get('/api/hr/summary', requireAuth, (req, res) => {
 
 // ── Catch-all: serve index.html for SPA routing ───────────────────
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
 });
 
 app.listen(PORT, () => {
