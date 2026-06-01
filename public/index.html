@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>PAD & PMC Internship System</title>
+<style>
+  :root {
+    --red: #7B0000;
+    --red-light: #F5E6E6;
+    --red-mid: #C0392B;
+    --dark: #2C3E50;
+    --gray: #6C757D;
+    --gray-light: #F8F9FA;
+    --border: #E0E0E0;
+    --white: #FFFFFF;
+    --green: #1B5E20;
+    --green-light: #E8F5E9;
+    --blue: #0C447C;
+    --blue-light: #E6F1FB;
+    --amber: #854F0B;
+    --amber-light: #FAEEDA;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F2F2F2; color: var(--dark); min-height: 100vh; }
+  .screen { display: none; min-height: 100vh; }
+  .screen.active { display: block; }
+  .header { background: var(--red); color: white; padding: 16px 20px; position: sticky; top: 0; z-index: 10; }
+  .header h1 { font-size: 17px; font-weight: 600; }
+  .header p { font-size: 12px; opacity: 0.8; margin-top: 2px; }
+  .header-back { display: flex; align-items: center; gap: 10px; }
+  .back-btn { background: rgba(255,255,255,0.2); border: none; color: white; width: 32px; height: 32px; border-radius: 8px; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .content { padding: 16px; }
+  .card { background: white; border-radius: 12px; padding: 16px 20px; margin-bottom: 12px; border: 1px solid var(--border); }
+  .card-row { display: flex; align-items: center; gap: 14px; cursor: pointer; }
+  .card-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+  .card-text { flex: 1; }
+  .card-text h3 { font-size: 15px; font-weight: 600; color: var(--dark); }
+  .card-text p { font-size: 12px; color: var(--gray); margin-top: 2px; }
+  .chevron { color: var(--border); font-size: 18px; }
+  .form-group { margin-bottom: 16px; }
+  .form-group label { display: block; font-size: 12px; color: var(--gray); margin-bottom: 6px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
+  .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; font-size: 15px; background: white; color: var(--dark); font-family: inherit; -webkit-appearance: none; }
+  .form-group textarea { resize: none; line-height: 1.5; }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--red); }
+  .pills { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+  .pill { padding: 8px 14px; border-radius: 20px; font-size: 13px; border: 1px solid var(--border); background: var(--gray-light); color: var(--gray); cursor: pointer; transition: all 0.15s; font-family: inherit; }
+  .pill.sel { background: var(--red); border-color: var(--red); color: white; }
+  .scale { display: flex; gap: 8px; margin-top: 4px; }
+  .scale-btn { flex: 1; height: 40px; border-radius: 8px; border: 1px solid var(--border); background: var(--gray-light); color: var(--gray); font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .scale-btn.sel { background: var(--red); border-color: var(--red); color: white; }
+  .btn { width: 100%; padding: 14px; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; border: none; font-family: inherit; margin-top: 4px; }
+  .btn-primary { background: var(--red); color: white; }
+  .btn-secondary { background: white; color: var(--dark); border: 1px solid var(--border); margin-top: 10px; }
+  .divider { height: 1px; background: var(--border); margin: 16px 0; }
+  .section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--gray); margin: 20px 0 10px; }
+  .badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .badge-done { background: var(--green-light); color: var(--green); }
+  .badge-pending { background: var(--amber-light); color: var(--amber); }
+  .badge-intern { background: var(--green-light); color: var(--green); }
+  .badge-mentor { background: #FAECE7; color: #993C1D; }
+  .badge-exit { background: var(--blue-light); color: var(--blue); }
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+  .stat-card { background: white; border-radius: 10px; padding: 14px 16px; border: 1px solid var(--border); text-align: center; }
+  .stat-card .num { font-size: 26px; font-weight: 700; color: var(--dark); }
+  .stat-card .lbl { font-size: 11px; color: var(--gray); margin-top: 2px; }
+  .stat-card.alert .num { color: var(--red); }
+  .tabs { display: flex; background: #ECECEC; border-radius: 10px; padding: 4px; gap: 4px; margin-bottom: 16px; }
+  .tab { flex: 1; padding: 9px; text-align: center; font-size: 13px; border-radius: 7px; cursor: pointer; color: var(--gray); font-family: inherit; border: none; background: transparent; font-weight: 500; }
+  .tab.active { background: white; color: var(--dark); font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+  .response-card { background: white; border-radius: 10px; border: 1px solid var(--border); padding: 14px 16px; margin-bottom: 10px; }
+  .response-card h4 { font-size: 14px; font-weight: 600; color: var(--dark); }
+  .response-card .meta { font-size: 12px; color: var(--gray); margin-top: 2px; margin-bottom: 10px; }
+  .response-row { display: flex; justify-content: space-between; align-items: center; }
+  .status-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 10px; }
+  .status-cell { text-align: center; background: var(--gray-light); border-radius: 8px; padding: 8px 4px; }
+  .status-cell .s-badge { font-size: 10px; font-weight: 600; display: block; margin-bottom: 2px; }
+  .status-cell .s-lbl { font-size: 10px; color: var(--gray); }
+  .qr-wrap { background: var(--gray-light); border-radius: 12px; padding: 24px; text-align: center; margin-bottom: 12px; }
+  .qr-box { width: 160px; height: 160px; background: white; border-radius: 10px; margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); }
+  .success-screen { text-align: center; padding: 48px 24px; }
+  .success-icon { width: 64px; height: 64px; border-radius: 50%; background: var(--green-light); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 30px; }
+  .rating-block { margin-bottom: 16px; }
+  .rating-block .r-label { font-size: 14px; font-weight: 600; color: var(--dark); margin-bottom: 2px; }
+  .rating-block .r-desc { font-size: 12px; color: var(--gray); margin-bottom: 8px; }
+  .home-header { background: var(--red); padding: 28px 20px 24px; }
+  .home-header .logo { font-size: 11px; color: rgba(255,255,255,0.7); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px; }
+  .home-header h1 { font-size: 22px; font-weight: 700; color: white; line-height: 1.3; }
+  .home-header p { font-size: 13px; color: rgba(255,255,255,0.75); margin-top: 6px; }
+  .login-wrap { padding: 24px 20px; }
+  .login-wrap h2 { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+  .login-wrap p { font-size: 13px; color: var(--gray); margin-bottom: 20px; }
+  .role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+  .role-card { background: white; border: 2px solid var(--border); border-radius: 12px; padding: 16px 12px; text-align: center; cursor: pointer; transition: all 0.15s; }
+  .role-card.sel { border-color: var(--red); background: var(--red-light); }
+  .role-card .r-icon { font-size: 28px; margin-bottom: 8px; }
+  .role-card h4 { font-size: 13px; font-weight: 600; color: var(--dark); }
+  .role-card p { font-size: 11px; color: var(--gray); margin-top: 2px; }
+  .warning { background: var(--amber-light); border: 1px solid #EF9F27; border-radius: 10px; padding: 12px 14px; font-size: 13px; color: var(--amber); margin-bottom: 16px; }
+  select option { font-size: 15px; }
+</style>
+</head>
+<body>
+
+<!-- HOME / LOGIN -->
+<div id="home" class="screen active">
+  <div class="home-header">
+    <div class="logo">PAD · PMC · 2026</div>
+    <h1>Internship<br>Digital System</h1>
+    <p>Daily logs · Mentor evaluations · Exit feedback</p>
+  </div>
+  <div class="login-wrap">
+    <h2>Who are you?</h2>
+    <p>Select your role to continue</p>
+    <div class="role-grid">
+      <div class="role-card" onclick="selectRole(this,'intern')" id="role-intern">
+        <div class="r-icon">🎓</div>
+        <h4>Intern</h4>
+        <p>Daily log & exit feedback</p>
+      </div>
+      <div class="role-card" onclick="selectRole(this,'mentor')" id="role-mentor">
+        <div class="r-icon">👨‍⚕️</div>
+        <h4>Mentor</h4>
+        <p>Evaluate today's intern</p>
+      </div>
+      <div class="role-card" onclick="selectRole(this,'hr')" id="role-hr" style="grid-column:span 2;">
+        <div class="r-icon">📊</div>
+        <h4>HR Admin</h4>
+        <p>Dashboard · QR codes · All responses</p>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Your name</label>
+      <input type="text" id="login-name" placeholder="Enter your full name">
+    </div>
+    <button class="btn btn-primary" onclick="doLogin()">Continue →</button>
+  </div>
+</div>
+
+<!-- INTERN MENU -->
+<div id="intern-menu" class="screen">
+  <div class="header">
+    <h1>Welcome, <span id="intern-name-display"></span></h1>
+    <p>Internship Programme 2026</p>
+  </div>
+  <div class="content">
+    <div class="card" onclick="show('intern-log')">
+      <div class="card-row">
+        <div class="card-icon" style="background:#E1F5EE;">📝</div>
+        <div class="card-text">
+          <h3>Daily log</h3>
+          <p>Fill your end-of-day reflection · Days 1–10</p>
+        </div>
+        <span class="chevron">›</span>
+      </div>
+    </div>
+    <div class="card" onclick="show('exit-form')">
+      <div class="card-row">
+        <div class="card-icon" style="background:#E6F1FB;">⭐</div>
+        <div class="card-text">
+          <h3>Exit feedback</h3>
+          <p>End of programme · Day 10 only</p>
+        </div>
+        <span class="chevron">›</span>
+      </div>
+    </div>
+    <button class="btn btn-secondary" onclick="show('home')">Sign out</button>
+  </div>
+</div>
+
+<!-- INTERN DAILY LOG -->
+<div id="intern-log" class="screen">
+  <div class="header">
+    <div class="header-back">
+      <button class="back-btn" onclick="show('intern-menu')">‹</button>
+      <div>
+        <h1>Daily log</h1>
+        <p>PAD & PMC Internship 2026</p>
+      </div>
+    </div>
+  </div>
+  <div class="content">
+    <div class="card">
+      <div class="form-group">
+        <label>Intern name</label>
+        <input type="text" id="log-intern-name" placeholder="Your full name">
+      </div>
+      <div class="form-group">
+        <label>Department today</label>
+        <select id="log-dept">
+          <option value="">Select department</option>
+          <optgroup label="Medical — PMC">
+            <option>General Physician (GP)</option>
+            <option>Nursing</option>
+            <option>Dental</option>
+            <option>Ophthalmology</option>
+            <option>ENT</option>
+            <option>Dermatology</option>
+            <option>Rheumatology</option>
+            <option>Gynaecology</option>
+            <option>Paediatrics</option>
+            <option>Cardiology</option>
+            <option>Orthopaedics</option>
+            <option>Family Medicine</option>
+            <option>Internal Medicine</option>
+            <option>General Surgery</option>
+            <option>Physiotherapy</option>
+            <option>Medical Laboratory & Pathology</option>
+            <option>Radiology</option>
+            <option>Public Health – Labour Camp</option>
+          </optgroup>
+          <optgroup label="Non-Medical — PAD">
+            <option>Administration</option>
+            <option>Human Resources</option>
+            <option>Finance & Accounts</option>
+            <option>Marketing & Communications</option>
+            <option>Business Development & Events</option>
+            <option>IT</option>
+            <option>Reception & Call Centre</option>
+            <option>Insurance & Billing</option>
+            <option>Welfare & Community Services</option>
+            <option>Outreach & Partnerships</option>
+            <option>Sports & Gym</option>
+            <option>Brick Cafe</option>
+            <option>Hunarkadah</option>
+          </optgroup>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Day number</label>
+        <select id="log-day">
+          <option value="">Select day</option>
+          <option>Day 1</option><option>Day 2</option><option>Day 3</option>
+          <option>Day 4</option><option>Day 5</option><option>Day 6</option>
+          <option>Day 7</option><option>Day 8</option><option>Day 9</option>
+          <option>Day 10</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Date</label>
+        <input type="date" id="log-date">
+      </div>
+    </div>
+
+    <div class="section-label">Today's reflection</div>
+    <div class="card">
+      <div class="form-group">
+        <label>What did you observe or do today?</label>
+        <textarea id="log-q1" rows="4" placeholder="Describe the key activities, procedures, or workflows you were part of..."></textarea>
+      </div>
+      <div class="divider"></div>
+      <div class="form-group">
+        <label>Key learning from today</label>
+        <textarea id="log-q2" rows="3" placeholder="What is the most important thing you learned?"></textarea>
+      </div>
+      <div class="divider"></div>
+      <div class="form-group" style="margin-bottom:0;">
+        <label>Any challenges or questions?</label>
+        <textarea id="log-q3" rows="3" placeholder="Anything you found difficult or want to explore further..."></textarea>
+      </div>
+    </div>
+
+    <div class="section-label">Rate today</div>
+    <div class="card">
+      <div class="form-group" style="margin-bottom:0;">
+        <label>How was today's experience?</label>
+        <div class="pills" id="log-rating">
+          <button class="pill" onclick="selPill(this,'log-rating')">Excellent</button>
+          <button class="pill" onclick="selPill(this,'log-rating')">Good</button>
+          <button class="pill" onclick="selPill(this,'log-rating')">Average</button>
+          <button class="pill" onclick="selPill(this,'log-rating')">Needs improvement</button>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" onclick="submitLog()">Submit daily log</button>
+    <button class="btn btn-secondary" onclick="show('intern-menu')">Cancel</button>
+  </div>
+</div>
+
+<!-- EXIT FEEDBACK -->
+<div id="exit-form" class="screen">
+  <div class="header">
+    <div class="header-back">
+      <button class="back-btn" onclick="show('intern-menu')">‹</button>
+      <div>
+        <h1>Exit feedback</h1>
+        <p>Day 10 · End of programme</p>
+      </div>
+    </div>
+  </div>
+  <div class="content">
+    <div class="warning">This form is filled once only, on your final day (Day 10).</div>
+    <div class="card">
+      <div class="form-group">
+        <label>Intern name</label>
+        <input type="text" id="exit-name" placeholder="Your full name">
+      </div>
+      <div class="form-group" style="margin-bottom:0;">
+        <label>Programme dates</label>
+        <input type="text" id="exit-dates" placeholder="e.g. 1–10 June 2026">
+      </div>
+    </div>
+
+    <div class="section-label">Rate each statement (1 = strongly disagree, 5 = strongly agree)</div>
+    <div class="card">
+      <div class="rating-block">
+        <div class="r-label">My internship objectives were clear</div>
+        <div class="scale" id="e-s1">
+          <button class="scale-btn" onclick="selScale(this,'e-s1')">1</button>
+          <button class="scale-btn" onclick="selScale(this,'e-s1')">2</button>
+          <button class="scale-btn" onclick="selScale(this,'e-s1')">3</button>
+          <button class="scale-btn" onclick="selScale(this,'e-s1')">4</button>
+          <button class="scale-btn" onclick="selScale(this,'e-s1')">5</button>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="rating-block">
+        <div class="r-label">My mentors were helpful and provided feedback</div>
+        <div class="scale" id="e-s2">
+          <button class="scale-btn" onclick="selScale(this,'e-s2')">1</button>
+          <button class="scale-btn" onclick="selScale(this,'e-s2')">2</button>
+          <button class="scale-btn" onclick="selScale(this,'e-s2')">3</button>
+          <button class="scale-btn" onclick="selScale(this,'e-s2')">4</button>
+          <button class="scale-btn" onclick="selScale(this,'e-s2')">5</button>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="rating-block">
+        <div class="r-label">My schedule fit well with my commitments</div>
+        <div class="scale" id="e-s3">
+          <button class="scale-btn" onclick="selScale(this,'e-s3')">1</button>
+          <button class="scale-btn" onclick="selScale(this,'e-s3')">2</button>
+          <button class="scale-btn" onclick="selScale(this,'e-s3')">3</button>
+          <button class="scale-btn" onclick="selScale(this,'e-s3')">4</button>
+          <button class="scale-btn" onclick="selScale(this,'e-s3')">5</button>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="rating-block">
+        <div class="r-label">I learned new skills from this experience</div>
+        <div class="scale" id="e-s4">
+          <button class="scale-btn" onclick="selScale(this,'e-s4')">1</button>
+          <button class="scale-btn" onclick="selScale(this,'e-s4')">2</button>
+          <button class="scale-btn" onclick="selScale(this,'e-s4')">3</button>
+          <button class="scale-btn" onclick="selScale(this,'e-s4')">4</button>
+          <button class="scale-btn" onclick="selScale(this,'e-s4')">5</button>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="rating-block" style="margin-bottom:0;">
+        <div class="r-label">I understand how my tasks linked to PAD & PMC's mission</div>
+        <div class="scale" id="e-s5">
+          <button class="scale-btn" onclick="selScale(this,'e-s5')">1</button>
+          <button class="scale-btn" onclick="selScale(this,'e-s5')">2</button>
+          <button class="scale-btn" onclick="selScale(this,'e-s5')">3</button>
+          <button class="scale-btn" onclick="selScale(this,'e-s5')">4</button>
+          <button class="scale-btn" onclick="selScale(this,'e-s5')">5</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-label">Open questions</div>
+    <div class="card">
+      <div class="form-group">
+        <label>1. What did you feel about the programme? Were you able to accomplish what you intended?</label>
+        <textarea id="exit-q1" rows="3" placeholder="Share your overall experience..."></textarea>
+      </div>
+      <div class="divider"></div>
+      <div class="form-group">
+        <label>2. How was your journey from the application form to completing the 10 days?</label>
+        <textarea id="exit-q2" rows="3" placeholder="Describe your end-to-end experience..."></textarea>
+      </div>
+      <div class="divider"></div>
+      <div class="form-group">
+        <label>3. Did you feel welcomed and comfortable?</label>
+        <div class="pills" id="exit-welcome">
+          <button class="pill" onclick="selPill(this,'exit-welcome')">Yes</button>
+          <button class="pill" onclick="selPill(this,'exit-welcome')">No</button>
+        </div>
+        <textarea id="exit-q3" rows="2" placeholder="If no, please share your reason..." style="margin-top:10px;"></textarea>
+      </div>
+      <div class="divider"></div>
+      <div class="form-group">
+        <label>4. Which department or mentor did you enjoy most, and what inspired you?</label>
+        <textarea id="exit-q4" rows="3" placeholder="Tell us about your favourite placement..."></textarea>
+      </div>
+      <div class="divider"></div>
+      <div class="form-group">
+        <label>5. Would you recommend this programme? What values or learnings are you taking away?</label>
+        <textarea id="exit-q5" rows="3" placeholder="Your recommendation and key takeaways..."></textarea>
+      </div>
+      <div class="divider"></div>
+      <div class="form-group" style="margin-bottom:0;">
+        <label>6. Suggestions to improve the programme for future interns</label>
+        <textarea id="exit-q6" rows="3" placeholder="Feedback on structure, departments, mentors, scheduling..."></textarea>
+      </div>
+    </div>
+
+    <div class="section-label">Overall rating</div>
+    <div class="card">
+      <div class="form-group" style="margin-bottom:0;">
+        <label>How would you rate your overall internship experience?</label>
+        <div class="pills" id="exit-overall">
+          <button class="pill" onclick="selPill(this,'exit-overall')">Excellent</button>
+          <button class="pill" onclick="selPill(this,'exit-overall')">Good</button>
+          <button class="pill" onclick="selPill(this,'exit-overall')">Adequate</button>
+          <button class="pill" onclick="selPill(this,'exit-overall')">Poor</button>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" onclick="submitExit()">Submit feedback</button>
+    <button class="btn btn-secondary" onclick="show('intern-menu')">Cancel</button>
+  </div>
+</div>
+
+<!-- MENTOR EVALUATION (QR entry) -->
+<div id="mentor-eval" class="screen">
+  <div class="header">
+    <div class="header-back">
+      <button class="back-btn" onclick="show('home')">‹</button>
+      <div>
+        <h1>Mentor evaluation</h1>
+        <p>Rate today's intern performance</p>
+      </div>
+    </div>
+  </div>
+  <div class="content">
+    <div class="card">
+      <div class="form-group">
+        <label>Intern name</label>
+        <input type="text" id="eval-intern" placeholder="Intern's full name">
+      </div>
+      <div class="form-group">
+        <label>Your name (mentor)</label>
+        <input type="text" id="eval-mentor" placeholder="Your full name">
+      </div>
+      <div class="form-group">
+        <label>Your designation</label>
+        <input type="text" id="eval-designation" placeholder="e.g. Consultant Cardiologist">
+      </div>
+      <div class="form-group">
+        <label>Department</label>
+        <select id="eval-dept">
+          <option value="">Select department</option>
+          <optgroup label="Medical — PMC">
+            <option>General Physician (GP)</option><option>Nursing</option>
+            <option>Dental</option><option>Ophthalmology</option><option>ENT</option>
+            <option>Dermatology</option><option>Rheumatology</option>
+            <option>Gynaecology</option><option>Paediatrics</option>
+            <option>Cardiology</option><option>Orthopaedics</option>
+            <option>Family Medicine</option><option>Internal Medicine</option>
+            <option>General Surgery</option><option>Physiotherapy</option>
+            <option>Medical Laboratory & Pathology</option><option>Radiology</option>
+            <option>Public Health – Labour Camp</option>
+          </optgroup>
+          <optgroup label="Non-Medical — PAD">
+            <option>Administration</option><option>Human Resources</option>
+            <option>Finance & Accounts</option><option>Marketing & Communications</option>
+            <option>Business Development & Events</option><option>IT</option>
+            <option>Reception & Call Centre</option><option>Insurance & Billing</option>
+            <option>Welfare & Community Services</option><option>Outreach & Partnerships</option>
+            <option>Sports & Gym</option><option>Brick Cafe</option><option>Hunarkadah</option>
+          </optgroup>
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom:0;">
+        <label>Date</label>
+        <input type="date" id="eval-date">
+      </div>
+    </div>
+
+    <div class="section-label">Performance ratings</div>
+    <div class="card">
+      <div class="rating-block">
+        <div class="r-label">Communication</div>
+        <div class="r-desc">Expresses ideas clearly; listens actively; speaks directly.</div>
+        <div class="pills" id="m-r1">
+          <button class="pill" onclick="selPill(this,'m-r1')">Outstanding</button>
+          <button class="pill" onclick="selPill(this,'m-r1')">Good</button>
+          <button class="pill" onclick="selPill(this,'m-r1')">Meets</button>
+          <button class="pill" onclick="selPill(this,'m-r1')">Below</button>
+          <button class="pill" onclick="selPill(this,'m-r1')">Needs improvement</button>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="rating-block">
+        <div class="r-label">Initiative & engagement</div>
+        <div class="r-desc">Asks questions; adapts to new situations; works independently.</div>
+        <div class="pills" id="m-r2">
+          <button class="pill" onclick="selPill(this,'m-r2')">Outstanding</button>
+          <button class="pill" onclick="selPill(this,'m-r2')">Good</button>
+          <button class="pill" onclick="selPill(this,'m-r2')">Meets</button>
+          <button class="pill" onclick="selPill(this,'m-r2')">Below</button>
+          <button class="pill" onclick="selPill(this,'m-r2')">Needs improvement</button>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="rating-block">
+        <div class="r-label">Professionalism</div>
+        <div class="r-desc">Punctual; respectful; appropriate conduct and appearance.</div>
+        <div class="pills" id="m-r3">
+          <button class="pill" onclick="selPill(this,'m-r3')">Outstanding</button>
+          <button class="pill" onclick="selPill(this,'m-r3')">Good</button>
+          <button class="pill" onclick="selPill(this,'m-r3')">Meets</button>
+          <button class="pill" onclick="selPill(this,'m-r3')">Below</button>
+          <button class="pill" onclick="selPill(this,'m-r3')">Needs improvement</button>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="rating-block" style="margin-bottom:0;">
+        <div class="r-label">Learning & curiosity</div>
+        <div class="r-desc">Seeks feedback; shows interest; applies new knowledge.</div>
+        <div class="pills" id="m-r4">
+          <button class="pill" onclick="selPill(this,'m-r4')">Outstanding</button>
+          <button class="pill" onclick="selPill(this,'m-r4')">Good</button>
+          <button class="pill" onclick="selPill(this,'m-r4')">Meets</button>
+          <button class="pill" onclick="selPill(this,'m-r4')">Below</button>
+          <button class="pill" onclick="selPill(this,'m-r4')">Needs improvement</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="form-group" style="margin-bottom:0;">
+        <label>Mentor comments</label>
+        <textarea id="eval-comments" rows="4" placeholder="Specific observations, strengths, or areas for the intern to focus on..."></textarea>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" onclick="submitEval()">Submit evaluation</button>
+    <button class="btn btn-secondary" onclick="show('home')">Cancel</button>
+  </div>
+</div>
+
+<!-- HR DASHBOARD -->
+<div id="hr-dashboard" class="screen">
+  <div class="header">
+    <h1>HR Admin Dashboard</h1>
+    <p>Samreen Hameed · Batch 1 · 2026</p>
+  </div>
+  <div class="content">
+    <div class="stat-grid" id="stats-grid">
+      <div class="stat-card"><div class="num" id="stat-logs">0</div><div class="lbl">Logs submitted</div></div>
+      <div class="stat-card"><div class="num" id="stat-evals">0</div><div class="lbl">Mentor evals</div></div>
+      <div class="stat-card"><div class="num" id="stat-exits">0</div><div class="lbl">Exit forms</div></div>
+      <div class="stat-card alert"><div class="num" id="stat-pending">0</div><div class="lbl">Pending evals</div></div>
+    </div>
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab(this,'tab-qr')">QR codes</button>
+      <button class="tab" onclick="switchTab(this,'tab-responses')">Responses</button>
+    </div>
+
+    <div id="tab-qr" class="tab-panel active">
+      <div class="card">
+        <div class="form-group">
+          <label>Intern name</label>
+          <input type="text" id="qr-intern" placeholder="e.g. Sara Ahmed" oninput="updateQR()">
+        </div>
+        <div class="form-group">
+          <label>Department</label>
+          <select id="qr-dept" onchange="updateQR()">
+            <option>Cardiology</option><option>Dermatology</option><option>ENT</option>
+            <option>Nursing</option><option>Dental</option><option>Radiology</option>
+            <option>HR</option><option>Finance & Accounts</option><option>Administration</option>
+            <option>Marketing & Communications</option><option>IT</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label>Day</label>
+          <select id="qr-day" onchange="updateQR()">
+            <option>Day 1</option><option>Day 2</option><option>Day 3</option>
+            <option>Day 4</option><option>Day 5</option><option>Day 6</option>
+            <option>Day 7</option><option>Day 8</option><option>Day 9</option><option>Day 10</option>
+          </select>
+        </div>
+      </div>
+      <div class="qr-wrap">
+        <div class="qr-box"><canvas id="qr-canvas" width="140" height="140"></canvas></div>
+        <p id="qr-label" style="font-size:13px;font-weight:600;color:var(--dark);margin-bottom:4px;"></p>
+        <p style="font-size:12px;color:var(--gray);">Print or share · Mentor scans to open pre-filled form</p>
+      </div>
+      <button class="btn btn-secondary" onclick="downloadQR()">⬇ Download QR code</button>
+    </div>
+
+    <div id="tab-responses" class="tab-panel">
+      <div id="responses-list"></div>
+      <p id="no-responses" style="text-align:center;color:var(--gray);font-size:14px;padding:24px 0;">No submissions yet.</p>
+    </div>
+
+    <button class="btn btn-secondary" onclick="show('home')" style="margin-top:8px;">Sign out</button>
+  </div>
+</div>
+
+<!-- SUCCESS SCREENS -->
+<div id="success-log" class="screen">
+  <div class="success-screen">
+    <div class="success-icon">✓</div>
+    <h2 style="font-size:20px;font-weight:700;margin-bottom:8px;">Log submitted!</h2>
+    <p style="color:var(--gray);font-size:14px;line-height:1.6;" id="success-log-msg"></p>
+    <button class="btn btn-primary" style="margin-top:32px;" onclick="show('intern-menu')">Done</button>
+  </div>
+</div>
+
+<div id="success-eval" class="screen">
+  <div class="success-screen">
+    <div class="success-icon">✓</div>
+    <h2 style="font-size:20px;font-weight:700;margin-bottom:8px;">Evaluation submitted!</h2>
+    <p style="color:var(--gray);font-size:14px;line-height:1.6;" id="success-eval-msg"></p>
+    <button class="btn btn-primary" style="margin-top:32px;" onclick="show('home')">Done</button>
+  </div>
+</div>
+
+<div id="success-exit" class="screen">
+  <div class="success-screen">
+    <div class="success-icon">⭐</div>
+    <h2 style="font-size:20px;font-weight:700;margin-bottom:8px;">Thank you!</h2>
+    <p style="color:var(--gray);font-size:14px;line-height:1.6;">Your feedback has been submitted. We hope you had a wonderful experience with PAD & PMC. Best of luck ahead!</p>
+    <button class="btn btn-primary" style="margin-top:32px;" onclick="show('home')">Done</button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+// ── State ──────────────────────────────────────────────────────────
+let currentRole = null;
+let currentUser = '';
+let submissions = { logs: [], evals: [], exits: [] };
+let qrInstance = null;
+
+// ── Navigation ─────────────────────────────────────────────────────
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+  if (id === 'hr-dashboard') refreshDashboard();
+}
+
+// ── Login ──────────────────────────────────────────────────────────
+function selectRole(el, role) {
+  document.querySelectorAll('.role-card').forEach(c => c.classList.remove('sel'));
+  el.classList.add('sel');
+  currentRole = role;
+}
+
+function doLogin() {
+  const name = document.getElementById('login-name').value.trim();
+  if (!name) { alert('Please enter your name.'); return; }
+  if (!currentRole) { alert('Please select your role.'); return; }
+  currentUser = name;
+  if (currentRole === 'intern') {
+    document.getElementById('intern-name-display').textContent = name.split(' ')[0];
+    document.getElementById('log-intern-name').value = name;
+    document.getElementById('exit-name').value = name;
+    document.getElementById('log-date').value = new Date().toISOString().split('T')[0];
+    show('intern-menu');
+  } else if (currentRole === 'mentor') {
+    document.getElementById('eval-mentor').value = name;
+    document.getElementById('eval-date').value = new Date().toISOString().split('T')[0];
+    show('mentor-eval');
+  } else if (currentRole === 'hr') {
+    show('hr-dashboard');
+  }
+}
+
+// ── Pill & scale selectors ─────────────────────────────────────────
+function selPill(el, groupId) {
+  document.querySelectorAll('#' + groupId + ' .pill').forEach(p => p.classList.remove('sel'));
+  el.classList.add('sel');
+}
+function selScale(el, groupId) {
+  document.querySelectorAll('#' + groupId + ' .scale-btn').forEach(b => b.classList.remove('sel'));
+  el.classList.add('sel');
+}
+function getSelected(groupId) {
+  const sel = document.querySelector('#' + groupId + ' .sel');
+  return sel ? sel.textContent : '';
+}
+
+// ── Submit log ─────────────────────────────────────────────────────
+function submitLog() {
+  const intern = document.getElementById('log-intern-name').value.trim();
+  const dept = document.getElementById('log-dept').value;
+  const day = document.getElementById('log-day').value;
+  if (!intern || !dept || !day) { alert('Please fill in your name, department, and day.'); return; }
+  const entry = {
+    type: 'log', intern, dept, day,
+    date: document.getElementById('log-date').value,
+    q1: document.getElementById('log-q1').value,
+    q2: document.getElementById('log-q2').value,
+    q3: document.getElementById('log-q3').value,
+    rating: getSelected('log-rating'),
+    timestamp: new Date().toISOString()
+  };
+  submissions.logs.push(entry);
+  saveData();
+  document.getElementById('success-log-msg').textContent =
+    `${day} · ${dept} has been recorded. Your mentor will complete their evaluation separately via QR code.`;
+  show('success-log');
+}
+
+// ── Submit eval ────────────────────────────────────────────────────
+function submitEval() {
+  const intern = document.getElementById('eval-intern').value.trim();
+  const mentor = document.getElementById('eval-mentor').value.trim();
+  const dept = document.getElementById('eval-dept').value;
+  if (!intern || !mentor || !dept) { alert('Please fill in all required fields.'); return; }
+  const entry = {
+    type: 'eval', intern, mentor, dept,
+    designation: document.getElementById('eval-designation').value,
+    date: document.getElementById('eval-date').value,
+    r1: getSelected('m-r1'), r2: getSelected('m-r2'),
+    r3: getSelected('m-r3'), r4: getSelected('m-r4'),
+    comments: document.getElementById('eval-comments').value,
+    timestamp: new Date().toISOString()
+  };
+  submissions.evals.push(entry);
+  saveData();
+  document.getElementById('success-eval-msg').textContent =
+    `Feedback for ${intern} (${dept}) has been recorded and linked in the HR dashboard.`;
+  show('success-eval');
+}
+
+// ── Submit exit ────────────────────────────────────────────────────
+function submitExit() {
+  const name = document.getElementById('exit-name').value.trim();
+  if (!name) { alert('Please enter your name.'); return; }
+  const entry = {
+    type: 'exit', intern: name,
+    dates: document.getElementById('exit-dates').value,
+    s1: getSelected('e-s1'), s2: getSelected('e-s2'), s3: getSelected('e-s3'),
+    s4: getSelected('e-s4'), s5: getSelected('e-s5'),
+    q1: document.getElementById('exit-q1').value,
+    q2: document.getElementById('exit-q2').value,
+    q3: document.getElementById('exit-q3').value,
+    q4: document.getElementById('exit-q4').value,
+    q5: document.getElementById('exit-q5').value,
+    q6: document.getElementById('exit-q6').value,
+    welcome: getSelected('exit-welcome'),
+    overall: getSelected('exit-overall'),
+    timestamp: new Date().toISOString()
+  };
+  submissions.exits.push(entry);
+  saveData();
+  show('success-exit');
+}
+
+// ── Dashboard ──────────────────────────────────────────────────────
+function refreshDashboard() {
+  document.getElementById('stat-logs').textContent = submissions.logs.length;
+  document.getElementById('stat-evals').textContent = submissions.evals.length;
+  document.getElementById('stat-exits').textContent = submissions.exits.length;
+  const pending = Math.max(0, submissions.logs.length - submissions.evals.length);
+  document.getElementById('stat-pending').textContent = pending;
+  renderResponses();
+  initQR();
+}
+
+function renderResponses() {
+  const list = document.getElementById('responses-list');
+  const noMsg = document.getElementById('no-responses');
+  const all = [...submissions.logs.map(l => ({...l, _type:'log'})),
+               ...submissions.evals.map(e => ({...e, _type:'eval'})),
+               ...submissions.exits.map(x => ({...x, _type:'exit'}))]
+    .sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+  if (all.length === 0) { list.innerHTML = ''; noMsg.style.display = 'block'; return; }
+  noMsg.style.display = 'none';
+  const grouped = {};
+  submissions.logs.forEach(l => {
+    const k = `${l.intern}|${l.day}|${l.dept}`;
+    if (!grouped[k]) grouped[k] = { intern: l.intern, day: l.day, dept: l.dept, date: l.date, log: false, eval: false, exit: false };
+    grouped[k].log = true;
+  });
+  submissions.evals.forEach(e => {
+    const key = Object.keys(grouped).find(k => k.startsWith(e.intern + '|'));
+    if (key) grouped[key].eval = true;
+    else { const k2 = `${e.intern}|?|${e.dept}`; grouped[k2] = { intern: e.intern, day: '?', dept: e.dept, date: e.date, log: false, eval: true, exit: false }; }
+  });
+  submissions.exits.forEach(x => {
+    Object.keys(grouped).filter(k => k.startsWith(x.intern + '|')).forEach(k => grouped[k].exit = true);
+  });
+  list.innerHTML = Object.values(grouped).map(g => `
+    <div class="response-card">
+      <div class="response-row">
+        <h4>${g.intern}</h4>
+        <span class="badge ${g.log && g.eval ? 'badge-done' : 'badge-pending'}">${g.log && g.eval ? 'Complete' : 'Pending'}</span>
+      </div>
+      <div class="meta">${g.day} · ${g.dept} · ${g.date || ''}</div>
+      <div class="status-row">
+        <div class="status-cell">
+          <span class="s-badge badge-intern">Log</span>
+          <div class="s-lbl">${g.log ? 'Submitted' : 'Pending'}</div>
+        </div>
+        <div class="status-cell">
+          <span class="s-badge badge-mentor">Eval</span>
+          <div class="s-lbl">${g.eval ? 'Submitted' : 'Pending'}</div>
+        </div>
+        <div class="status-cell">
+          <span class="s-badge badge-exit">Exit</span>
+          <div class="s-lbl">${g.exit ? 'Done' : 'Day 10'}</div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+// ── QR code ────────────────────────────────────────────────────────
+function getQRText() {
+  const intern = (document.getElementById('qr-intern').value.trim() || 'intern').toLowerCase().replace(/\s+/g,'-');
+  const dept = (document.getElementById('qr-dept').value || 'dept').toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
+  const day = (document.getElementById('qr-day').value || 'day-1').toLowerCase().replace(' ','-');
+  return `https://intern.pmcpad.ae/eval?intern=${intern}&dept=${dept}&day=${day}`;
+}
+
+function updateQRLabel() {
+  const intern = document.getElementById('qr-intern').value.trim() || '—';
+  const dept = document.getElementById('qr-dept').value;
+  const day = document.getElementById('qr-day').value;
+  document.getElementById('qr-label').textContent = `${intern} · ${dept} · ${day}`;
+}
+
+function initQR() {
+  updateQRLabel();
+  const canvas = document.getElementById('qr-canvas');
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, 140, 140);
+  try {
+    if (qrInstance) { canvas.getContext('2d').clearRect(0,0,140,140); }
+    qrInstance = new QRCode(canvas, {
+      text: getQRText(), width: 140, height: 140,
+      colorDark: '#7B0000', colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+  } catch(e) {}
+}
+
+function updateQR() {
+  updateQRLabel();
+  const canvas = document.getElementById('qr-canvas');
+  canvas.getContext('2d').clearRect(0, 0, 140, 140);
+  setTimeout(() => {
+    try {
+      new QRCode(canvas, {
+        text: getQRText(), width: 140, height: 140,
+        colorDark: '#7B0000', colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
+      });
+    } catch(e) {}
+  }, 50);
+}
+
+function downloadQR() {
+  const canvas = document.getElementById('qr-canvas');
+  const link = document.createElement('a');
+  link.download = `qr-${document.getElementById('qr-intern').value.replace(/\s+/g,'-') || 'intern'}-${document.getElementById('qr-day').value}.png`;
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+
+// ── Tab switching ──────────────────────────────────────────────────
+function switchTab(tabEl, panelId) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  tabEl.classList.add('active');
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(panelId).classList.add('active');
+  if (panelId === 'tab-qr') setTimeout(initQR, 100);
+}
+
+// ── Persistence ────────────────────────────────────────────────────
+function saveData() {
+  try { localStorage.setItem('padpmc_data', JSON.stringify(submissions)); } catch(e) {}
+}
+function loadData() {
+  try {
+    const d = localStorage.getItem('padpmc_data');
+    if (d) submissions = JSON.parse(d);
+  } catch(e) {}
+}
+
+// ── Init ───────────────────────────────────────────────────────────
+loadData();
+document.getElementById('log-date').value = new Date().toISOString().split('T')[0];
+document.getElementById('eval-date').value = new Date().toISOString().split('T')[0];
+</script>
+</body>
+</html>
